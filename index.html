@@ -132,60 +132,124 @@
   </main>
 
   <script>
-    function showResult(id, buttonId, title, content) {
-      const result = document.getElementById(id);
-      result.replaceChildren();
-      const heading = document.createElement("h3");
-      heading.textContent = title;
-      const body = document.createElement("pre");
-      body.textContent = content;
-      result.append(heading, body);
-      result.classList.add("show");
-      document.getElementById(buttonId).disabled = false;
+    
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwSyu66fqmSPOpXuPCt1CAOw2YWl0EI6yu5FkI1Lo0ebpRdrDKRLJPfw7L-u8psWxZMqQ/exec";
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3500);
+}
+
+async function generateBrief(payload, buttonId, outputId, resultId, originalLabel) {
+  const button = document.getElementById(buttonId);
+  const output = document.getElementById(outputId);
+  const result = document.getElementById(resultId);
+
+  button.disabled = true;
+  button.textContent = "Generating with AI…";
+  output.classList.add("show");
+  result.textContent = "Connecting to PM Pilot AI…";
+
+  const label = output.querySelector(".result-label");
+  if (label) label.textContent = "LIVE AI OUTPUT";
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.error || !data.brief) {
+      throw new Error(data.error || "The AI did not return a brief.");
     }
 
-    function runResearch() {
-      const market = document.getElementById("market").value.trim();
-      const competitors = document.getElementById("competitors").value.trim();
-      if (!market) {
-        alert("Please enter a product or market first.");
-        return;
-      }
-      const button = document.getElementById("researchBtn");
-      button.disabled = true;
-      button.textContent = "Preparing brief…";
-      showResult("researchResult", "researchBtn", "Research brief",
-        "Market: " + market +
-        "\n\nCompetitors to examine: " + (competitors || "Identify relevant competitors") +
-        "\n\n1. Compare target segments, value propositions, onboarding, pricing, distribution and trust.\n\n" +
-        "2. Investigate possible customer gaps through user interviews, app reviews and competitor product flows.\n\n" +
-        "3. Strategic hypotheses: focus on an underserved segment, reduce time-to-value, or improve trust and transparency.\n\n" +
-        "4. Validation: verify current competitor features and prices using official sources. Treat unverified gaps as hypotheses.\n\n" +
-        "5. Next step: build a sourced comparison matrix and rank opportunities by impact, confidence and effort.");
-      button.textContent = "Generate research brief ↗";
-    }
+    result.replaceChildren();
+    const pre = document.createElement("pre");
+    pre.style.whiteSpace = "pre-wrap";
+    pre.style.overflowWrap = "anywhere";
+    pre.style.font = "inherit";
+    pre.textContent = data.brief;
+    result.appendChild(pre);
 
-    function runOpportunity() {
-      const problem = document.getElementById("problem").value.trim();
-      const goal = document.getElementById("goal").value;
-      if (!problem) {
-        alert("Please describe a customer problem first.");
-        return;
-      }
-      const button = document.getElementById("opportunityBtn");
-      button.disabled = true;
-      button.textContent = "Preparing opportunities…";
-      showResult("opportunityResult", "opportunityBtn", "Opportunity brief",
-        "Customer problem: " + problem +
-        "\n\nPrimary goal: " + goal +
-        "\n\nHypothesis 1 — Progressive disclosure: ask only for information needed to deliver the first meaningful outcome.\n\n" +
-        "Hypothesis 2 — Explain the why: tell users why sensitive information is needed and how it will be used.\n\n" +
-        "Hypothesis 3 — Save and resume: let users complete onboarding in more than one session.\n\n" +
-        "Experiment: test a simplified onboarding flow against the current experience.\n\n" +
-        "Primary metric: onboarding completion. Guardrails: verification success, fraud signals and downstream activation.\n\n" +
-        "Before launch, define the target segment, baseline, success threshold and experiment duration.");
-      button.textContent = "Explore opportunities ↗";
-    }
+    showToast("AI brief generated successfully.");
+  } catch (error) {
+    result.textContent =
+      "Unable to generate the brief. " +
+      "This may be a temporary service or browser connection issue. " +
+      "Please try again. Details: " + error.message;
+    showToast("Could not connect to the AI service.");
+  } finally {
+    button.disabled = false;
+    button.textContent = originalLabel;
+  }
+}
+
+function runCompetitor() {
+  const market = document.getElementById("competitors").value.trim();
+  const competitors = document.getElementById("compNames").value.trim();
+
+  if (!market) {
+    showToast("Enter a product or market first.");
+    return;
+  }
+
+  generateBrief(
+    {
+      workflow: "competitor",
+      market: market,
+      competitors: competitors
+    },
+    "researchBtn",
+    "compOutput",
+    "compResult",
+    "Generate research brief ↗"
+  );
+}
+
+function runDiscovery() {
+  const problem = document.getElementById("problem").value.trim();
+  const goal = document.getElementById("goal").value;
+
+  if (!problem) {
+    showToast("Describe a customer problem first.");
+    return;
+  }
+
+  generateBrief(
+    {
+      workflow: "discovery",
+      problem: problem,
+      goal: goal
+    },
+    "opportunityBtn",
+    "discOutput",
+    "discResult",
+    "Explore opportunities ↗"
+  );
+}
+
+function copyResult(id) {
+  const element = document.getElementById(id);
+  const text = element.innerText;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast("Brief copied."))
+      .catch(() => showToast("Please select and copy the brief manually."));
+  } else {
+    showToast("Please select and copy the brief manually.");
+  }
+}
+</script>
+
   </script>
 </body>
 </html>
