@@ -1,1 +1,191 @@
 
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PM Pilot — AI Product Workbench</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Inter, system-ui, sans-serif;
+      background: #f7f7fb; color: #201d35;
+    }
+    header {
+      max-width: 1100px; margin: auto; padding: 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #e8e5f3;
+    }
+    .brand { font-size: 22px; font-weight: 800; }
+    .brand span, h1 span { color: #6254e8; }
+    .badge { color: #6254e8; font-size: 12px; }
+    main { max-width: 1100px; padding: 30px 24px 60px; margin: auto; }
+    .hero { padding: 48px 0 34px; }
+    .eyebrow { color: #6254e8; font-size: 12px; font-weight: 800; letter-spacing: 2px; }
+    h1 { font-size: clamp(38px, 6vw, 62px); line-height: 1.05; letter-spacing: -2px; margin: 18px 0; }
+    .intro { color: #6e6a80; max-width: 650px; line-height: 1.8; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+    .card {
+      background: white; border: 1px solid #e8e5f3; border-radius: 20px;
+      padding: 24px; box-shadow: 0 8px 30px #30236a08;
+    }
+    .icon { font-size: 24px; color: #6254e8; }
+    h2 { font-size: 21px; margin: 12px 0 8px; }
+    .desc { color: #777187; font-size: 14px; line-height: 1.7; min-height: 48px; }
+    label { display: block; margin: 17px 0 8px; font-size: 13px; font-weight: 700; }
+    input, textarea, select {
+      width: 100%; border: 1px solid #e2dfef; border-radius: 10px;
+      padding: 12px; background: #fcfbff; font: inherit; font-size: 14px;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    button {
+      border: 0; border-radius: 10px; padding: 13px 16px;
+      margin-top: 16px; background: #6254e8; color: white;
+      font-weight: 700; cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .result {
+      display: none; margin-top: 22px; padding-top: 18px;
+      border-top: 1px solid #e8e5f3; line-height: 1.7;
+      font-size: 14px; overflow-wrap: anywhere;
+    }
+    .result.show { display: block; }
+    .result pre { white-space: pre-wrap; font: inherit; }
+    .note {
+      margin-top: 24px; padding: 16px; border: 1px dashed #d3ccff;
+      border-radius: 12px; color: #716b87; font-size: 13px; line-height: 1.7;
+    }
+    footer { margin-top: 32px; color: #8a859b; font-size: 12px; }
+    @media (max-width: 720px) {
+      header { padding: 18px; }
+      main { padding: 20px 18px 45px; }
+      .grid { grid-template-columns: 1fr; }
+      .hero { padding-top: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">✳ pm <span>pilot</span></div>
+    <div class="badge">AI PRODUCT WORKBENCH</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow">YOUR AI PRODUCT WORKBENCH</div>
+      <h1>From product question<br>to <span>product clarity.</span></h1>
+      <p class="intro">
+        Explore competitive landscapes, uncover customer opportunities,
+        and turn messy product questions into structured decisions.
+        No account required.
+      </p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="icon">⌕</div>
+        <h2>Competitor Intelligence</h2>
+        <p class="desc">Analyse a market, compare competitors, and identify opportunities to differentiate.</p>
+
+        <label for="market">Product or market</label>
+        <input id="market" value="Personal finance apps for young professionals in India"
+          placeholder="Describe a market or product">
+
+        <label for="competitors">Competitors (optional)</label>
+        <input id="competitors" value="CRED, Fi Money, Jupiter"
+          placeholder="Competitor names, separated by commas">
+
+        <button id="researchBtn" onclick="runResearch()">Generate research brief ↗</button>
+        <div id="researchResult" class="result" aria-live="polite"></div>
+      </article>
+
+      <article class="card">
+        <div class="icon">✧</div>
+        <h2>Product Opportunity Lab</h2>
+        <p class="desc">Turn a customer problem into hypotheses, experiments, and measurable product outcomes.</p>
+
+        <label for="problem">Customer problem</label>
+        <textarea id="problem" placeholder="What problem are your customers facing?">Users abandon onboarding when a finance app asks for too much information upfront.</textarea>
+
+        <label for="goal">Primary product goal</label>
+        <select id="goal">
+          <option>Improve activation</option>
+          <option>Increase retention</option>
+          <option>Grow revenue</option>
+          <option>Reduce support contacts</option>
+          <option>Improve trust and reliability</option>
+        </select>
+
+        <button id="opportunityBtn" onclick="runOpportunity()">Explore opportunities ↗</button>
+        <div id="opportunityResult" class="result" aria-live="polite"></div>
+      </article>
+    </section>
+
+    <div class="note">
+      <strong>Early build:</strong> This version displays illustrative sample answers.
+      Live AI integration is the next step. Competitor claims should be checked
+      against current, reliable sources before making business decisions.
+    </div>
+
+    <footer>PM Pilot · Independent product management side project</footer>
+  </main>
+
+  <script>
+    function showResult(id, buttonId, title, content) {
+      const result = document.getElementById(id);
+      result.replaceChildren();
+      const heading = document.createElement("h3");
+      heading.textContent = title;
+      const body = document.createElement("pre");
+      body.textContent = content;
+      result.append(heading, body);
+      result.classList.add("show");
+      document.getElementById(buttonId).disabled = false;
+    }
+
+    function runResearch() {
+      const market = document.getElementById("market").value.trim();
+      const competitors = document.getElementById("competitors").value.trim();
+      if (!market) {
+        alert("Please enter a product or market first.");
+        return;
+      }
+      const button = document.getElementById("researchBtn");
+      button.disabled = true;
+      button.textContent = "Preparing brief…";
+      showResult("researchResult", "researchBtn", "Research brief",
+        "Market: " + market +
+        "\n\nCompetitors to examine: " + (competitors || "Identify relevant competitors") +
+        "\n\n1. Compare target segments, value propositions, onboarding, pricing, distribution and trust.\n\n" +
+        "2. Investigate possible customer gaps through user interviews, app reviews and competitor product flows.\n\n" +
+        "3. Strategic hypotheses: focus on an underserved segment, reduce time-to-value, or improve trust and transparency.\n\n" +
+        "4. Validation: verify current competitor features and prices using official sources. Treat unverified gaps as hypotheses.\n\n" +
+        "5. Next step: build a sourced comparison matrix and rank opportunities by impact, confidence and effort.");
+      button.textContent = "Generate research brief ↗";
+    }
+
+    function runOpportunity() {
+      const problem = document.getElementById("problem").value.trim();
+      const goal = document.getElementById("goal").value;
+      if (!problem) {
+        alert("Please describe a customer problem first.");
+        return;
+      }
+      const button = document.getElementById("opportunityBtn");
+      button.disabled = true;
+      button.textContent = "Preparing opportunities…";
+      showResult("opportunityResult", "opportunityBtn", "Opportunity brief",
+        "Customer problem: " + problem +
+        "\n\nPrimary goal: " + goal +
+        "\n\nHypothesis 1 — Progressive disclosure: ask only for information needed to deliver the first meaningful outcome.\n\n" +
+        "Hypothesis 2 — Explain the why: tell users why sensitive information is needed and how it will be used.\n\n" +
+        "Hypothesis 3 — Save and resume: let users complete onboarding in more than one session.\n\n" +
+        "Experiment: test a simplified onboarding flow against the current experience.\n\n" +
+        "Primary metric: onboarding completion. Guardrails: verification success, fraud signals and downstream activation.\n\n" +
+        "Before launch, define the target segment, baseline, success threshold and experiment duration.");
+      button.textContent = "Explore opportunities ↗";
+    }
+  </script>
+</body>
+</html>
